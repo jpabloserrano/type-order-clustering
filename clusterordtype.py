@@ -123,7 +123,7 @@ def points_between_angles(angles: list, min_angle: float, max_angle: float) -> i
 # La distancia entre dos puntos "p" y "q" de un conjunto de puntos "points"
 # se calcula como el número de par de puntos cuya recta que los une intersecta
 # al segmento de recta que une a p con q.
-# Este método es O(n^{2}).
+# Este método es O(n\log n).
 
 def delta(p: list, q: list, points: list, ordered_points: dict) -> int:
 
@@ -168,6 +168,7 @@ def delta(p: list, q: list, points: list, ordered_points: dict) -> int:
 # Función para calcular el centroide de un conjunto de puntos respecto a una distancia cualquiera.
 # En esta función se utiliza la función definida para este problema (delta), pero se espera que funcione para cualquier distancia.
 # El centroide se calcula como aquel punto p que minimice la suma de distancias \sum delta(p,q_{i}).
+# Este método es O(kn^{2}\log n) donde k=tamaño del cluster.
 
 def centroid(cluster: list, ordered_points: list) -> list:
 
@@ -200,8 +201,9 @@ def centroid(cluster: list, ordered_points: list) -> list:
         return [0,0]
 
 # Algoritmo de Lloyd. Devuelve un diccionario para representar los clusters y los centros.
+# Este método es O(n^{2}\log n).
 
-def lloyd(points: list, k: int) -> dict:
+def order_type_clustering(points: list, k: int) -> dict:
 
     # op = ordered points
 
