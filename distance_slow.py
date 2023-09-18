@@ -16,30 +16,24 @@ def orientation(A: list, B: list, C: list) -> str:
 # Función para verificar si la línea entre X e Y cruza el segmento de P a Q
 def is_crossing(P: list, Q: list, X: list, Y: list) -> bool:
 
-    o1 = orientation(P, Q, X)
-    
-    o2 = orientation(P, Q, Y)
-    
-    o3 = orientation(X, Y, P)
-    
-    o4 = orientation(X, Y, Q)
-
     # Los puntos son colineales o los segmentos se cruzan
-    
-    return o1 != o2 and o3 != o4
 
+    return orientation(X, Y, P) != orientation(X, Y, Q)
+    
 #Función para contar el par de puntos que cruzan a P y Q.
 def count_crossing_pairs(P: list, Q: list, points: list) -> int:
     
     count = 0
 
     # Iterar sobre cada par de puntos
-    
-    for i in range(len(points)):
-    
-        for j in range(i + 1, len(points)):
-    
-            if is_crossing(P, Q, points[i], points[j]):
+
+    not_P_not_Q = [point for point in points if point != P and point != Q]
+
+    for i in range(len(not_P_not_Q)):
+
+        for j in range(i + 1, len(not_P_not_Q)):
+
+            if is_crossing(P, Q, not_P_not_Q[i], not_P_not_Q[j]):
     
                 count += 1
 
@@ -47,12 +41,10 @@ def count_crossing_pairs(P: list, Q: list, points: list) -> int:
 
 # Ejemplo de uso
 
-p = [0, 0]
+p = [3,3]
 
-q = [1, 2]
+q = [0, 2]
 
-points = [[1, 1], [2, 7], [3, 5], [0, 3], [4, 0], p, q]
+points = [[0, 3], [4, 0], p, q]
 
-result = count_crossing_pairs(p, q, points)
-
-print("Número de pares de puntos con líneas que cruzan el segmento de p a q:", result)
+print(count_crossing_pairs(p,q,points))

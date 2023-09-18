@@ -1,8 +1,6 @@
 from PyDCG import geometricbasics
 import numpy as np
 import random
-import math
-
 
 # Función para leer un archivo txt (la entrada de la función es la ruta al archivo)
 # para almacenar la lista de los vectores del archivo txt.
@@ -23,6 +21,20 @@ def vectors(path: str) -> list:
             
     return points
 
+# Función para conocer la orientacióno de 3 puntos A, B, C
+
+def orientation(A: list, B: list, C: list) -> str:
+    
+    # Función para calcular la orientación entre tres puntos
+    
+    det = ((B[0]-A[0])*C[1])+((A[0]-C[0])*B[1])+((C[0]-B[0])*A[1])
+    
+    if det == 0:
+    
+        return 'col'  # Colineales
+    
+    return 'izq' if det > 0 else 'der'  # En sentido horario o antihorario
+
 # Método para realizar el ordenamiento respecto a ángulo de todos los puntos.
 # Devuelve un diccionario cuyas claves son las tuplas de los vectores para acceder al orden respecto al ángulo.
 # Este método es O(n^{2}\log n).
@@ -35,94 +47,27 @@ def ordered_points(points: list) -> dict:
 
     for x in points:
 
-        # Definimos un diccionario que va a contener los puntos ordenados y los ángulos respectivos.
-
         ordered_points[tuple(x)] = dict()
 
-        # sapp = sort around points by
+        sym_points = list()
 
-        sapp = geometricbasics.sort_around_point_py(p=x, points=points)
+        for p in points:
+                
+            sym_p = [(2 * x[0]) - p[0], (2 * x[1]) - p[1]]
 
-        ordered_points[tuple(x)]['ordered_points'] = sapp
+            sym_points.append(sym_p)
 
-        angles = list()
+        # Creación del orden respecto a x de los puntos "originales"
 
-        for p in sapp:
-            
-            # Calcula el ángulo en radianes entre p y x.
-            
-            angle = math.atan2(p[1], p[0]) - math.atan2(x[1], x[0])
+        ordered_points[tuple(x)]['ordered_points'] = geometricbasics.sort_around_point_py(x, points)
 
-            # Ángulo esté en el rango [0, 2*pi]
-            
-            if angle < 0:
-            
-                angle += 2 * math.pi
-            
-            angles.append(angle)
+        # Creamos otro orden con los puntos simétricos dados por sym_points
 
-        ordered_points[tuple(x)]['angles'] = angles
-
+        ordered_points[tuple(x)]['symmetric_points'] = geometricbasics.sort_around_point_py(x, sym_points)
     
     return ordered_points
 
-# Método para encontrar el número de ángulos en una lista de ángulos entre angle_mix y max_angle
-# Este método es log(n) utilizando búsqueda binaria.
-# Este método está hecho para una lista angles ordenada en forma decreciente
-
-def points_between_angles(angles: list, min_angle: float, max_angle: float) -> int:
-    
-    # Búsqueda binaria para encontrar el índice del primer elemento menor que min_angle
-    
-    left = 0
-    
-    right = len(angles) - 1
-    
-    while left <= right:
-    
-        mid = left + (right - left) // 2
-    
-        if angles[mid] >= min_angle:
-    
-            left = mid + 1
-    
-        else:
-    
-            right = mid - 1
-    
-
-    # geq contiene el índice del primer elemento mayor que min_angle
-    
-    geq = left
-
-    # Búsqueda binaria para encontrar el índice del último elemento menor que max_angle
-    
-    left = 0
-    
-    right = len(angles) - 1
-    
-    while left <= right:
-    
-        mid = left + (right - left) // 2
-    
-        if angles[mid] > max_angle:
-    
-            left = mid + 1
-    
-        else:
-    
-            right = mid - 1
-    
-    # leq contiene el índice del último elemento menor que max_angle
-
-    leq = right
-
-    return geq-leq-1
-
 # Función para el cálculo de la distancia en "tipo de orden".
-# La distancia entre dos puntos "p" y "q" de un conjunto de puntos "points"
-# se calcula como el número de par de puntos cuya recta que los une intersecta
-# al segmento de recta que une a p con q.
 # Este método es O(n\log n).
 
 def delta(p: list, q: list, points: list, ordered_points: dict) -> int:
@@ -144,26 +89,26 @@ def delta(p: list, q: list, points: list, ordered_points: dict) -> int:
         not_p_not_q = [point for point in points if point != p and point != q]
 
         for x in not_p_not_q:
-
-                # spa = sorted points by angle from x
-
-                sapp = ordered_points[tuple(x)]['ordered_points']
-
-                angles = ordered_points[tuple(x)]['angles']
-
-                # Encontramos los índices del punto de mayor ángulo y menor ángulo respectivamente.
-
-                max_angle, min_angle = min(sapp.index(p), sapp.index(q)), max(sapp.index(p), sapp.index(q))
-
-                # Incremento de la distancia en el número de puntos que estén en la region que determinan las rectas que unen a p con x
-                # y q con x.
-                # Esos puntos seran aquellos cuyos ángulos estén entre el mínimo y el máximo y min-180 y max-180
                 
-                distance += points_between_angles(angles=angles, min_angle=angles[min_angle]-math.pi, max_angle=angles[max_angle]-math.pi)
-                
-                distance += points_between_angles(angles=angles, min_angle=angles[min_angle], max_angle=angles[max_angle])
+                sym_p = [(2 * x[0]) - p[0], (2 * x[1]) - p[1]]
 
-        return distance
+                sym_q = [(2 * x[0]) - q[0], (2 * x[1]) - q[1]]
+
+                # spax = sorted points by angle from x
+                
+                spax = ordered_points[tuple(x)]['ordered_points']
+                
+                sym_spax = ordered_points[tuple(x)]['symmetric_points']
+                
+                index_p, index_q = spax.index(p), spax.index(q) # Esta línea se puede hacer en O(log n)
+                
+                spin = orientation(x, p, q)
+
+                if spin == 'izq': distance += (len(spax[index_p+1:index_q]) + len(sym_spax[index_p+1:index_q])) / 2
+
+                elif spin == 'der': distance += (len(spax[index_q+1:index_p]) + len(sym_spax[index_q+1:index_p])) / 2
+                
+        return int(distance / 2)
 
 # Función para calcular el centroide de un conjunto de puntos respecto a una distancia cualquiera.
 # En esta función se utiliza la función definida para este problema (delta), pero se espera que funcione para cualquier distancia.
@@ -263,3 +208,15 @@ def order_type_clustering(points: list, k: int) -> dict:
     print(f'\n{f} iteraciones.')
     
     return {'cluster': cluster, 'centers': centers}
+
+# Ejemplo de uso
+
+p = [3,3]
+
+q = [0, 2]
+
+points = [[0, 3], [4, 0], p, q]
+
+result = delta(p, q, points, ordered_points(points))
+
+print(f"Distancia entre {p} y {q}: {result}")
