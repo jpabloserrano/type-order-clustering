@@ -41,10 +41,10 @@ def count_crossing_pairs(P: list, Q: list, points: list) -> int:
 
 # Ejemplo de uso
 
-p = [3,3]
+p = [4,4]
 
-q = [0, 2]
+q = [-4,0]
 
-points = [[0, 3], [4, 0], p, q]
+points = [[0, 3], [5, 0], [2,4], [2,2], [-3, 7], p, q]
 
 print(count_crossing_pairs(p,q,points))
