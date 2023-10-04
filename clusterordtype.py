@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import random
 import PyDCG
@@ -228,6 +229,10 @@ for k in [3,4,6]:
 
     clustering = order_type_clustering(points=points, k=k)
 
+    # Guarda el diccionario en un archivo de texto como JSON
+    with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\tests\\'+str(len(points))+'pts_'+str(k)+'clusters.txt', "w") as f:
+        json.dump(clustering, f)
+
     for i in range(k):
 
         cluster = clustering['cluster'][i]
@@ -239,9 +244,12 @@ for k in [3,4,6]:
 
         # Crea un gráfico de dispersión
         plt.scatter(xcoordinate, ycoordinate, label=f"Cluster {i+1}")
-
+    
     # Agrega una leyenda
     plt.legend()
+    
+    # Agrega una leyenda
+    plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts_'+str(k)+'clusters.png')
 
     # Muestra el gráfico
     plt.show()
