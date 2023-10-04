@@ -1,6 +1,6 @@
-from PyDCG import geometricbasics
 import numpy as np
 import random
+import PyDCG
 
 # Función para leer un archivo txt (la entrada de la función es la ruta al archivo)
 # para almacenar la lista de los vectores del archivo txt.
@@ -57,14 +57,12 @@ def ordered_points(points: list) -> dict:
 
             sym_points.append(sym_p)
 
-        # Creación del orden respecto a x de los puntos "originales"
+        all_points = points + sym_points
 
-        ordered_points[tuple(x)]['ordered_points'] = geometricbasics.sort_around_point_py(x, points)
+        # Creamos otro orden con los puntos todos los puntos dados por points+sym_points
 
-        # Creamos otro orden con los puntos simétricos dados por sym_points
+        ordered_points[tuple(x)]['all_points'] = PyDCG.geometricbasics.sort_around_point_py(x, all_points)
 
-        ordered_points[tuple(x)]['symmetric_points'] = geometricbasics.sort_around_point_py(x, sym_points)
-    
     return ordered_points
 
 # Función para el cálculo de la distancia en "tipo de orden".
@@ -90,30 +88,40 @@ def delta(p: list, q: list, points: list, ordered_points: dict) -> int:
 
         for x in not_p_not_q:
                 
-                sym_p = [(2 * x[0]) - p[0], (2 * x[1]) - p[1]]
+                # sapax = sort all points by angle from x
 
-                sym_q = [(2 * x[0]) - q[0], (2 * x[1]) - q[1]]
+                sapax = ordered_points[tuple(x)]['all_points']
 
-                # spax = sorted points by angle from x
-                
-                spax = ordered_points[tuple(x)]['ordered_points']
-                
-                sym_spax = ordered_points[tuple(x)]['symmetric_points']
-                
-                index_p, index_q = spax.index(p), spax.index(q) # Esta línea se puede hacer en O(log n)
-                
+                a_index_p, a_index_q = sapax.index(p), sapax.index(q)
+
                 spin = orientation(x, p, q)
 
-                if spin == 'izq': distance += (len(spax[index_p+1:index_q]) + len(sym_spax[index_p+1:index_q])) / 2
+                if spin == 'izq':
+                    
+                    if a_index_p < a_index_q:
 
-                elif spin == 'der': distance += (len(spax[index_q+1:index_p]) + len(sym_spax[index_q+1:index_p])) / 2
-                
+                        distance += len(sapax[a_index_p+1:a_index_q])
+                    
+                    elif a_index_p > a_index_q:
+
+                        distance += len(sapax[a_index_p+1:]) + len(sapax[2:a_index_q])
+
+                elif spin == 'der':
+
+                    if a_index_p > a_index_q:
+
+                        distance += len(sapax[a_index_q+1:a_index_p])
+                    
+                    elif a_index_p < a_index_q:
+                        
+                        distance += len(sapax[2:a_index_p]) + len(sapax[a_index_q+1:])
+
         return int(distance / 2)
 
 # Función para calcular el centroide de un conjunto de puntos respecto a una distancia cualquiera.
 # En esta función se utiliza la función definida para este problema (delta), pero se espera que funcione para cualquier distancia.
 # El centroide se calcula como aquel punto p que minimice la suma de distancias \sum delta(p,q_{i}).
-# Este método es O(kn^{2}\log n) donde k=tamaño del cluster.
+# Este método es O(kn^{2}) donde k es tamaño del cluster.
 
 def centroid(cluster: list, ordered_points: list) -> list:
 
@@ -146,7 +154,7 @@ def centroid(cluster: list, ordered_points: list) -> list:
         return [0,0]
 
 # Algoritmo de Lloyd. Devuelve un diccionario para representar los clusters y los centros.
-# Este método es O(n^{2}\log n).
+# Este método es O(n^{2}\log n) + O(k^{2}n^{2}).
 
 def order_type_clustering(points: list, k: int) -> dict:
 
@@ -175,7 +183,7 @@ def order_type_clustering(points: list, k: int) -> dict:
 
             # Distancia del punto p a cada centro. 
 
-            # Este tiempo de ejecución es O(kn\log(n))
+            # El tiempo de ejecución de la siguiente línea es O(kn^{2})
 
             distances = [delta(p=p, q=center, points=points, ordered_points=op) for center in centers]
 
@@ -194,8 +202,10 @@ def order_type_clustering(points: list, k: int) -> dict:
         for j in cluster.keys():
 
             # Se añade el centroide (respecto a "delta") al nuevo conjunto de centros
+
+            # El tiempo de ejecución de la siguiente línea es O(k^{2}n^{2})
             
-            updated_centers.append(centroid(cluster=cluster[j]))
+            updated_centers.append(centroid(cluster=cluster[j], ordered_points=op))
             
         f += 1
 
@@ -209,14 +219,25 @@ def order_type_clustering(points: list, k: int) -> dict:
     
     return {'cluster': cluster, 'centers': centers}
 
-# Ejemplo de uso
+# Lectura de puntos
 
-p = [3,3]
+points = vectors(path=r'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\puntos.txt')
 
-q = [0, 2]
+k = 3
 
-points = [[0, 3], [4, 0], p, q]
+clustering = order_type_clustering(points=points, k=k)
 
-result = delta(p, q, points, ordered_points(points))
+for i in range(k):
 
-print(f"Distancia entre {p} y {q}: {result}")
+    cluster = clustering['cluster'][i]
+
+    print(f'\nCLUSTER {i+1}\n')
+
+    print(f'Num. Puntos: {len(cluster)}\n')
+    print(f'Num. Cruce: {PyDCG.crossing.count_crossings_py(cluster)}\n')
+    print(f'Porc. Puntos: {round(len(cluster)/len(points), 3)*100}%\n')
+
+    #for point in cluster:
+
+    #    point.append(i)
+#vis=PyDCG.visualizer2.Vis(points=points)
