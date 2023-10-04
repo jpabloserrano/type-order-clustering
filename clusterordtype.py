@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import PyDCG
+import matplotlib.pyplot as plt
 
 # Función para leer un archivo txt (la entrada de la función es la ruta al archivo)
 # para almacenar la lista de los vectores del archivo txt.
@@ -223,21 +224,24 @@ def order_type_clustering(points: list, k: int) -> dict:
 
 points = vectors(path=r'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\puntos.txt')
 
-k = 3
+for k in [3,4,6]:
 
-clustering = order_type_clustering(points=points, k=k)
+    clustering = order_type_clustering(points=points, k=k)
 
-for i in range(k):
+    for i in range(k):
 
-    cluster = clustering['cluster'][i]
+        cluster = clustering['cluster'][i]
 
-    print(f'\nCLUSTER {i+1}\n')
+        # Desempaquetado de las coordenadas en listas separadas
+        xcoordinate, ycoordinate = zip(*cluster)
 
-    print(f'Num. Puntos: {len(cluster)}\n')
-    print(f'Num. Cruce: {PyDCG.crossing.count_crossings_py(cluster)}\n')
-    print(f'Porc. Puntos: {round(len(cluster)/len(points), 3)*100}%\n')
+        #color = colors[i % len(colors)]
 
-    #for point in cluster:
+        # Crea un gráfico de dispersión
+        plt.scatter(xcoordinate, ycoordinate, label=f"Cluster {i+1}")
 
-    #    point.append(i)
-#vis=PyDCG.visualizer2.Vis(points=points)
+    # Agrega una leyenda
+    plt.legend()
+
+    # Muestra el gráfico
+    plt.show()
