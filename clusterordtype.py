@@ -5,25 +5,6 @@ import PyDCG
 import matplotlib.pyplot as plt
 import pickle
 
-def vectors(path: str) -> list:
-
-    # Función para leer un archivo txt (la entrada de la función es la ruta al archivo)
-    # para almacenar la lista de los vectores del archivo txt.
-
-    points = list()
-
-    with open(path, 'r') as file:
-
-        for line in file:
-
-            # Lee cada línea del archivo y divide los números usando split()
-
-            a, b = map(float, line.strip().split())
-
-            points.append([int(a),int(b)])
-            
-    return points
-
 def order_type_clustering(points: list, k: int) -> dict:
 
     def orientation(A: list, B: list, C: list) -> str:
@@ -196,12 +177,8 @@ def order_type_clustering(points: list, k: int) -> dict:
 
     f = 1
 
-    cluster = {0: points}
-    
-    for j in range(1,k): cluster[j] = list()
-
     while True:
-    
+
         # Diccionario para representar los clusters
 
         updated_cluster = dict()
@@ -223,18 +200,6 @@ def order_type_clustering(points: list, k: int) -> dict:
             # Asignación del punto p al cluster "min_distance_index"
 
             updated_cluster[min_distance_index].append(p)
-        
-        #stop = True
-        
-        #for j in range(k):
-
-        #    if cluster[j] != updated_cluster[j]:
-
-        #        cluster[j] = updated_cluster[j]
-
-        #        stop = False
-        
-        #if stop: break
 
         # Cálculo de nuevos centros
 
@@ -249,10 +214,11 @@ def order_type_clustering(points: list, k: int) -> dict:
             updated_centers.append(centroid(cluster=updated_cluster[j]))
             
         f += 1
-
+        
         if centers == updated_centers: break
         
         else: centers = updated_centers
+
 
     print(f'{f} iteraciones.\n')
     
@@ -260,20 +226,19 @@ def order_type_clustering(points: list, k: int) -> dict:
 
 # Lectura de puntos
 
-#points = vectors(path=r'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\puntos.txt')
-
 file=open(r'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\rectilinear_crossing_number.pkl','rb')
 
 D=pickle.load(file, encoding='latin1')
 
-points = D[50]['pts']
+points = D[1500]['pts']
 
 k = 6
 
 clustering = order_type_clustering(points=points, k=k)
 
 # Guarda el diccionario en un archivo de texto como JSON
-with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\tests\\'+str(len(points))+'pts_'+str(k)+'clusters.txt', "w") as f:
+with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\\'+str(len(points))+'pts_'+str(k)+'clusters.txt', "w") as f:
+    
     json.dump(clustering, f)
 
 for i in range(k):
@@ -298,7 +263,7 @@ for i in range(k):
 plt.legend()
 
 # Agrega una leyenda
-plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts_'+str(k)+'clusters.png')
+plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(k)+'pts\\'+str(len(points))+'pts_'+str(k)+'clusters.png')
 
 # Muestra el gráfico
 plt.show()
