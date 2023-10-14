@@ -1,9 +1,11 @@
 import json
+import os
 import numpy as np
 import random
 import PyDCG
 import matplotlib.pyplot as plt
 import pickle
+import pandas as pd
 
 def order_type_clustering(points: list, k: int) -> dict:
 
@@ -177,13 +179,13 @@ def order_type_clustering(points: list, k: int) -> dict:
 
     f = 1
 
-    while True:
+    while f < 10:
 
         # Diccionario para representar los clusters
 
-        updated_cluster = dict()
+        cluster = dict()
 
-        for j in range(k): updated_cluster[j] = list()
+        for j in range(k): cluster[j] = list()
 
         # Tiempo del siguiente ciclo: O(kn^{2}\log n)
         
@@ -199,7 +201,7 @@ def order_type_clustering(points: list, k: int) -> dict:
 
             # Asignación del punto p al cluster "min_distance_index"
 
-            updated_cluster[min_distance_index].append(p)
+            cluster[min_distance_index].append(p)
 
         # Cálculo de nuevos centros
 
@@ -211,7 +213,7 @@ def order_type_clustering(points: list, k: int) -> dict:
 
             # Se añade el centroide (respecto a "delta") al nuevo conjunto de centros
 
-            updated_centers.append(centroid(cluster=updated_cluster[j]))
+            updated_centers.append(centroid(cluster=cluster[j]))
             
         f += 1
         
@@ -222,48 +224,101 @@ def order_type_clustering(points: list, k: int) -> dict:
 
     print(f'{f} iteraciones.\n')
     
-    return {'cluster': updated_cluster, 'centers': centers}
+    return {'cluster': cluster, 'centers': centers}
 
-# Lectura de puntos
+def clustering_statistics(n: int, k: int) -> list:
 
-file=open(r'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\rectilinear_crossing_number.pkl','rb')
+    '''
+        Programa para extraer estadísticas del cluster hecho por order_type_clustering
 
-D=pickle.load(file, encoding='latin1')
+        - Parametros:
+        n: Número de puntos de la gráfica a analizar.
+        k: Cantidad de clusters
 
-points = D[1500]['pts']
+        Es necesario que se cuente con los archivos rectilinear_crossing_number.pkl
+    '''
+    # Lectura de puntos
 
-k = 6
+    file=open(r'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\rectilinear_crossing_number.pkl','rb')
 
-clustering = order_type_clustering(points=points, k=k)
+    D=pickle.load(file, encoding='latin1')
 
-# Guarda el diccionario en un archivo de texto como JSON
-with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\\'+str(len(points))+'pts_'+str(k)+'clusters.txt', "w") as f:
+    points = D[n]['pts']
+
+    clustering = order_type_clustering(points=points, k=k)
+
+    # Guarda el diccionario en un archivo de texto como JSON
+    with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\\'+str(len(points))+'pts\\'+str(k)+'clusters.txt', "w") as f:
+        
+        json.dump(clustering, f)
+
+    # Eliminamos contenido previo.
+    open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\\'+str(len(points))+'pts\\'+str(k)+'clusters_info.txt', "w").close()
     
-    json.dump(clustering, f)
+    if os.path.exists(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts_\\'+str(k)+'clusters.txt'):
+        os.remove(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts_\\'+str(k)+'clusters.txt')
 
-for i in range(k):
+    pts_statistics = list()
 
-    cluster = clustering['cluster'][i]
+    for i in range(k):
 
-    try: pts = D[len(cluster)]['pts']
+        cluster = clustering['cluster'][i]
+
+        try: pts = D[len(cluster)]['pts']
+        except: continue
+
+        optimal = PyDCG.crossing.count_crossings_py(pts)
+        crossing = PyDCG.crossing.count_crossings_py(cluster)
+        
+        pts_statistics.append(round(len(cluster) / len(points),3))
+        if crossing == 0: pts_statistics.append(1)
+        else: pts_statistics.append(round(optimal / crossing,3))
+
+        with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\\'+str(len(points))+'pts\\'+str(k)+'clusters_info.txt', "a") as f:
+            f.write(f'\nNum. Puntos Cluster {i+1}: {len(cluster)}')
+            f.write(f'\nCrossing Number Cluster {i+1}: {crossing}')
+            f.write(f'\nOptimal Crossing Number {i+1}: {optimal}')
+            f.write(f'\nRazón Número Puntos y Cluster {i+1}: {round(len(cluster) / len(points),3)}')
+            if crossing == 0: f.write(f'\nRazón Óptimo y Número Cruce {i+1}: 1\n')
+            else: f.write(f'\nRazón Óptimo y Número Cruce {i+1}: {round(optimal / crossing,3)}\n')
+
+        # Desempaquetado de las coordenadas en listas separadas
+        xcoordinate, ycoordinate = zip(*cluster)
+
+        # Crea un gráfico de dispersión
+        plt.scatter(xcoordinate, ycoordinate, label=f"Cluster {i+1}")
+
+    # Agrega una leyenda
+    plt.legend()
+
+    # Agrega una leyenda
+    plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts\\'+str(len(points))+'pts_'+str(k)+'clusters.png')
+    plt.close()
+    
+    return pts_statistics
+    
+    # Muestra el gráfico
+    #plt.show()
+
+k = 4
+
+stats = pd.DataFrame()
+
+column = list()
+
+for i in range(1,k+1):
+
+    column.append(f'cluster{i} / n')
+    column.append(f'optimo / #cruce{i}')
+
+stats[''] = column
+
+stats.set_index('', inplace=True)
+
+for n in [50,75,100,200,400,500,600,750,1000]:
+
+    try: stats[f'{n}pts'] = clustering_statistics(n,k)
+
     except: continue
 
-    print(f'Num. Puntos Cluster {i+1}: {len(cluster)}')
-    print(f'Crossing Number Cluster {i+1}: {PyDCG.crossing.count_crossings_py(cluster)}')
-    print(f'Optimal (until now) Crossing Number {i+1}: {PyDCG.crossing.count_crossings_py(pts)}\n')
-
-
-    # Desempaquetado de las coordenadas en listas separadas
-    xcoordinate, ycoordinate = zip(*cluster)
-
-    # Crea un gráfico de dispersión
-    plt.scatter(xcoordinate, ycoordinate, label=f"Cluster {i+1}")
-
-# Agrega una leyenda
-plt.legend()
-
-# Agrega una leyenda
-plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(k)+'pts\\'+str(len(points))+'pts_'+str(k)+'clusters.png')
-
-# Muestra el gráfico
-plt.show()
+    stats.to_csv(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\4clusters_statistics.csv')
