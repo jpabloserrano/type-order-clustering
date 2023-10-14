@@ -1,17 +1,29 @@
 import json
+import pickle
 import matplotlib.pyplot as plt
+import PyDCG
 
 
-def blow_up(clustering: list, alpha=1) -> None:
-    k = 0    
+def blow_up(clustering: list, k: int, alpha=1) -> None:
+    
+    file=open(r'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\rectilinear_crossing_number.pkl','rb')
+    D=pickle.load(file, encoding='latin1')
+
+    n = 0    
     for j in clustering['cluster'].keys():
-        k += len(clustering['cluster'][j])
+        n += len(clustering['cluster'][j])
 
     # Este programa muestra realiza una transformación lineal de un conjunto de puntos
     # que infla el conjunto de puntos.
     for j in clustering['cluster'].keys():
         cluster = clustering['cluster'][j]
+        if len(cluster) <= 1: continue
+        
+        try: optimal = D[len(cluster)]['pts']
+        except: continue
+        
         sorted_cluster = sorted(cluster, key=lambda vector: vector[0], reverse=True)
+        sup = sorted_cluster[0][0]
         # Lista para almacenar los vectores q-p
         pts = list()
         for p in sorted_cluster:
@@ -21,7 +33,7 @@ def blow_up(clustering: list, alpha=1) -> None:
         w = [(-1)*v[1], v[0]]
         
         # T = transformacion lineal
-        T = [v, [alpha * w[0], alpha * w[1]]]
+        T = [v, [alpha * sup * w[0], alpha * sup * w[1]]]
 
         blow_up = list()
 
@@ -35,15 +47,19 @@ def blow_up(clustering: list, alpha=1) -> None:
         # Crea un gráfico de dispersión
         plt.scatter(xcoordinate, ycoordinate)
 
-        plt.title('Cluster ' + str(int(j)+1))
+        plt.title(f"Cantidad de Puntos: {len(cluster)}\n"+f"Crossing Number: {PyDCG.crossing.count_crossings_py(cluster)}\n"+f"Optimal Crossing Number: {PyDCG.crossing.count_crossings_py(optimal)}")
 
-        plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(k)+'pts\\'+'cluster_'+str(int(j)+1)+'.png')
+        plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(n)+'pts\\'+str(k)+'clusters\\'+'cluster_'+str(int(j)+1)+'.png')
 
         # Muestra el gráfico
         plt.show()
 
-with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\1000pts_6clusters.txt', 'r') as f:
+k=4
+
+n = 500
+
+with open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\\'+str(n)+'pts\\'+str(k)+'clusters.txt', 'r') as f:
     clustering = json.loads(f.read())
 f.close()
 
-blow_up(clustering=clustering, alpha=10000)
+blow_up(clustering=clustering, k=k, alpha=5)
