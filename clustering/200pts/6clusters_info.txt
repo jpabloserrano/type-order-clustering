@@ -1,0 +1,30 @@
+
+Num. Puntos Cluster 1: 20
+Crossing Number Cluster 1: 2852
+Optimal Crossing Number 1: 1657
+Razón Número Puntos y Cluster 1: 0.1
+Razón Óptimo y Número Cruce 1: 0.581
+
+Num. Puntos Cluster 2: 65
+Crossing Number Cluster 2: 277514
+Optimal Crossing Number 2: 249960
+Razón Número Puntos y Cluster 2: 0.325
+Razón Óptimo y Número Cruce 2: 0.901
+
+Num. Puntos Cluster 3: 42
+Crossing Number Cluster 3: 64897
+Optimal Crossing Number 3: 40590
+Razón Número Puntos y Cluster 3: 0.21
+Razón Óptimo y Número Cruce 3: 0.625
+
+Num. Puntos Cluster 5: 60
+Crossing Number Cluster 5: 218379
+Optimal Crossing Number 5: 179521
+Razón Número Puntos y Cluster 5: 0.3
+Razón Óptimo y Número Cruce 5: 0.822
+
+Num. Puntos Cluster 6: 12
+Crossing Number Cluster 6: 195
+Optimal Crossing Number 6: 153
+Razón Número Puntos y Cluster 6: 0.06
+Razón Óptimo y Número Cruce 6: 0.785
