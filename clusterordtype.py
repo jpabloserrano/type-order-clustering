@@ -190,17 +190,17 @@ def order_type_clustering(points: list, k: int) -> dict:
 
                     q = S[j]
 
-                    if (p,q) in cache:
+                    if (i,j) in cache:
 
-                        distance = cache[(p,q)]
+                        distance = cache[(i,j)]
                     
                     else:
 
-                        distance = delta(p=p, q=q, ordered_points=op)
+                        distance = delta(p=p, q=q, points=S, ordered_points=op)
 
-                        cache[(p,q)] = distance
+                        cache[(i,j)] = distance
 
-                        cache[(q,p)] = cache[(p,q)]
+                        cache[(j,i)] = cache[(i,j)]
                 
                     sum_distance += distance
 
@@ -277,7 +277,7 @@ def order_type_clustering(points: list, k: int) -> dict:
     
     return {'cluster': cluster, 'centers': centers}
 
-def statistics(k: int, num_points: list) -> None:
+def cluster(k: int, num_points: list) -> None:
 
     def clustering_statistics(n: int, k: int) -> list:
 
@@ -309,6 +309,7 @@ def statistics(k: int, num_points: list) -> None:
         open(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\clustering\\'+str(len(points))+'pts\\'+str(k)+'clusters_info.txt', "w").close()
         
         if os.path.exists(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts_\\'+str(k)+'clusters.txt'):
+            
             os.remove(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts_\\'+str(k)+'clusters.txt')
 
         pts_statistics = list()
@@ -346,12 +347,12 @@ def statistics(k: int, num_points: list) -> None:
 
         # Agrega una leyenda
         plt.savefig(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\figs\\'+str(len(points))+'pts\\'+str(k)+'clusters\\'+str(len(points))+'pts_'+str(k)+'clusters.png')
-        plt.close()
-        
-        return pts_statistics
         
         # Muestra el gráfico
         #plt.show()
+        plt.close()
+
+        return pts_statistics
 
     '''
         Programa que crea un archivo csv que guarda información estadística del agrupamiento en tipo de orden
@@ -376,7 +377,9 @@ def statistics(k: int, num_points: list) -> None:
 
     for n in num_points:
 
-        try: stats[f'{n}pts'] = clustering_statistics(n,k)
+        statistics = clustering_statistics(n,k)
+
+        try: stats[f'{n}pts'] = statistics
 
         except: continue
 
