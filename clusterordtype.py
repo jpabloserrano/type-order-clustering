@@ -362,28 +362,28 @@ def cluster(k: int, num_points: list) -> None:
     
     '''
 
-    stats = pd.DataFrame()
+    try:
 
-    column = list()
+        df = pd.read_csv(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\\'+str(k)+'clusters_statistics.csv')
+    
+    except:
 
-    for i in range(1,k+1):
+        index = []
 
-        column.append(f'cluster{i} / n')
-        column.append(f'optimo / #cruce{i}')
+        for i in range(k):
+            index.append(f'cl{i+1}/n')
+            index.append(f'cr{i+1}/n')
 
-    stats[''] = column
-
-    stats.set_index('', inplace=True)
+        # Crea un DataFrame de pandas
+        df = pd.DataFrame({'': index})
 
     for n in num_points:
 
         statistics = clustering_statistics(n,k)
+        
+        df[f'{n}pts'] = statistics
 
-        try: stats[f'{n}pts'] = statistics
-
-        except: continue
-
-        stats.to_csv(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\\'+str(k)+'clusters_statistics.csv')
+    df.to_csv(r'C:\Users\wamjs\OneDrive\Documentos\Cinvestav\type-order-clustering\\'+str(k)+'clusters_statistics.csv', index=False)
 
 def cluster_analysis(n: int, k: int, shoulder_arm: int) -> None:
 
