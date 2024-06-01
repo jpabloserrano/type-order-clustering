@@ -7,12 +7,16 @@ import matplotlib.pyplot as plt
 import pickle
 import pandas as pd
 
-def order_type_clustering(points: list, k: int) -> dict:
+def order_type_clustering(points: list, k: int, plot=False) -> dict:
 
     def orientation(A: list, B: list, C: list) -> str:
-        # Función para conocer la orientacióno de 3 puntos A, B, C
+
+        ''' 
+            Función para conocer la orientacióno de 3 puntos A, B, C
+
+            return: izq->izquierda, der->derecha, col->colineales
         
-        # Función para calcular la orientación entre tres puntos
+        '''
         
         det = ((B[0]-A[0])*C[1])+((A[0]-C[0])*B[1])+((C[0]-B[0])*A[1])
         
@@ -22,13 +26,15 @@ def order_type_clustering(points: list, k: int) -> dict:
         
         return 'izq' if det > 0 else 'der'  # En sentido horario o antihorario
 
-    def polar_binary_search(points, p):
+    def polar_binary_search(points: list, p: list) -> int:
         
         '''
             Realiza una búsqueda binaria en la lista ordenada de puntos en sentido polar en O(log n)
             -Parametrs:
             points: muestra de puntos
             p: punto a buscar
+
+            return: índice donde se encuentra p.
         
         '''
         left, right = 0, len(points) - 1
@@ -63,6 +69,10 @@ def order_type_clustering(points: list, k: int) -> dict:
 
             -Parametros:
             points: muestra de puntos donde se hará el ordenamiento polar.
+
+            -return:
+            Regresa un diccionario con cada orden a partir de cada punto x. Las llaves del diccionario son tuple(x)
+            tuple(x) consiste en un diccionario con los puntos de points más sus simétricos ordenados al rededor de x.
         
         '''
         ordered_points = dict()
@@ -99,7 +109,9 @@ def order_type_clustering(points: list, k: int) -> dict:
             q: punto en points
             points: muestra de puntos donde se calculará delta
             ordered_points: Diccionario que almacenará la información de ordenamiento respecto a points.
-        
+
+            -return:
+            La distancia entre p y q. Es un entero.
         '''
         # Condición de distancia para puntos fuera de "points"
 
@@ -148,7 +160,7 @@ def order_type_clustering(points: list, k: int) -> dict:
                             distance += len(sapax[2:a_index_p]) + len(sapax[a_index_q+1:])
 
             return int(distance / 2)
-    
+   
     def centroid(S: list) -> list:
         
         '''
@@ -163,6 +175,9 @@ def order_type_clustering(points: list, k: int) -> dict:
 
             - Parametros:
             S: Lista que contiene vectores (representados como listas)
+
+            -return:
+            Regresa un punto que es el centroide calculado.
         
         '''
         
@@ -216,9 +231,26 @@ def order_type_clustering(points: list, k: int) -> dict:
 
             return [0,0]
 
-    # Algoritmo de Lloyd. Devuelve un diccionario para representar los clusters y los centros.
+    '''
+        Algoritmo de Lloyd. 
+        Devuelve un diccionario para representar los clusters y los centros.
 
-    # op = ordered points
+    '''
+    def plot_cluster(clusters, centers, iteration):
+        plt.figure()
+        colors = ['g', 'b', 'c', 'm', 'y', 'k']
+
+        for cluster_id, points in clusters.items():
+            x_coords, y_coords = zip(*points)
+            x_center, y_center = centers[cluster_id]
+            color = colors[cluster_id % len(colors)]
+            
+            plt.scatter(x_coords, y_coords, c=color, label=f'Cluster {cluster_id+1}')
+            plt.scatter(x_center, y_center, c='r', s=30, linewidths=3)
+        plt.title(f"Iteration {iteration}")
+        plt.legend()
+        plt.savefig(fr'C:\Users\wamjs\OneDrive\Documentos\Python\ruy\combinatorial\comb_{iteration}.png')
+        #plt.show()
 
     op = ordered_points(points=points)
     
@@ -254,6 +286,10 @@ def order_type_clustering(points: list, k: int) -> dict:
 
             cluster[min_distance_index].append(p)
 
+        if plot:
+
+            plot_cluster(clusters=cluster, centers=centers, iteration=f)
+        
         # Cálculo de nuevos centros
 
         updated_centers = list()
@@ -271,7 +307,6 @@ def order_type_clustering(points: list, k: int) -> dict:
         if centers == updated_centers: break
         
         else: centers = updated_centers
-
 
     print(f'{f} iteraciones.')
     
